@@ -152,8 +152,3 @@ int main() {
 
     return 0;
 }
-
-// Try 1: 373 -> too low
-// Try 2: 386 -> too low
-// Try 3: 388 -> too low
-// Try 4: 397 -> incorrect
