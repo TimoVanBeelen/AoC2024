@@ -79,12 +79,55 @@ bool is_safe(int* data, int data_len) {
 }
 
 
+// Check the safety of a number array with the dampner
+bool safe_with_dampner(int* data, int data_len) {
+    // Return true for the original ones
+    if (is_safe(data, data_len)) return true;
+
+    // Create a vector of the array
+    std::vector<int> data_v;
+    for (int i=0; i<data_len; i++) data_v.push_back(data[i]);
+
+    // Set variables
+    bool mistake_made = false;
+    int max_change = 3;
+    int min_change = 1;
+
+    // See if the system is increasing or not
+    bool increasing = false;
+    if (data[0] < data[1]) increasing = true;
+
+    // Check all items
+    for (int i=0; i<data_len-1; i++) {
+        // Check conditions for increasing/decreasing
+        if (increasing && data[i]>data[i+1]){
+            data_v.erase(data_v.begin()+i);
+            return is_safe(&data_v[0], data_len-1);
+        }
+        if (!increasing && data[i]<data[i+1]) {
+            data_v.erase(data_v.begin()+i);
+            return is_safe(&data_v[0], data_len-1);
+        }
+
+        // Check delta conditions
+        int change = abs(data[i]-data[i+1]);
+        if (change > max_change || change < min_change) {
+            data_v.erase(data_v.begin()+i);
+            return is_safe(&data_v[0], data_len-1);
+        }
+    }
+
+    return true;
+}
+
+
 // Run main code here
 int main() {
     // Read file
-    std::vector<std::string> input_lines =  read_file("input.txt");
+    std::vector<std::string> input_lines =  read_file("ref.txt");
 
     int safe_reports = 0; // Result variable
+    int safe_w_dampner = 0; // Result part 2
 
     // Go through each report to check if it is safe
     for (int i=0; i<input_lines.size(); i++) {
@@ -97,11 +140,18 @@ int main() {
         if (is_safe(data, arrayLength))
             safe_reports++;
 
+        // Check if report is safe
+        if (safe_with_dampner(data, arrayLength))
+            safe_w_dampner++;
+
         // Free the data array memory
+        std::cout << std::endl;
         delete[] data;
     }
 
+    // Print answers
     std::cout << "Answer 1: " << safe_reports << std::endl;
+    std::cout << "Answer 2: " << safe_w_dampner << std::endl;
 
     return 0;
 }
