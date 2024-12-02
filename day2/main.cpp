@@ -79,6 +79,7 @@ bool is_safe(int* data, int data_len) {
 }
 
 
+// remove an element and see if that creates a safe report
 bool try_erase_option(std::vector<int> v, int remove, int data_len) {
     v.erase(v.begin()+remove);
     return is_safe(&v[0], data_len-1);
@@ -94,38 +95,13 @@ bool safe_with_dampner(int* data, int data_len) {
     std::vector<int> data_v;
     for (int i=0; i<data_len; i++) data_v.push_back(data[i]);
 
-    // Set variables
-    int max_change = 3;
-    int min_change = 1;
-
-    // See if the system is increasing or not
-    bool increasing = false;
-    if (data[0] < data[1]) increasing = true;
-
-    // Check all items
+    // Check all items while removing one of the options
     for (int i=0; i<data_len-1; i++) {
-        // Check conditions for increasing/decreasing
-        if (increasing && data[i]>data[i+1]) {
-            if (try_erase_option(data_v, i, data_len) || try_erase_option(data_v, i+1, data_len))
-                {return true;}
-            else return false;
-        }
-        if (!increasing && data[i]<data[i+1]) {
-            if (try_erase_option(data_v, i, data_len) || try_erase_option(data_v, i+1, data_len))
-                {return true;}
-            else return false;
-        }
-
-        // Check delta conditions
-        int change = abs(data[i]-data[i+1]);
-        if (change > max_change || change < min_change) {
-            if (try_erase_option(data_v, i, data_len) || try_erase_option(data_v, i+1, data_len))
-                {return true;}
-            else return false;
-        }
+        if (try_erase_option(data_v, i, data_len))
+            return true;
     }
 
-    return true;
+    return false;
 }
 
 
