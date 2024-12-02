@@ -79,6 +79,12 @@ bool is_safe(int* data, int data_len) {
 }
 
 
+bool try_erase_option(std::vector<int> v, int remove, int data_len) {
+    v.erase(v.begin()+remove);
+    return is_safe(&v[0], data_len-1);
+}
+
+
 // Check the safety of a number array with the dampner
 bool safe_with_dampner(int* data, int data_len) {
     // Return true for the original ones
@@ -89,7 +95,6 @@ bool safe_with_dampner(int* data, int data_len) {
     for (int i=0; i<data_len; i++) data_v.push_back(data[i]);
 
     // Set variables
-    bool mistake_made = false;
     int max_change = 3;
     int min_change = 1;
 
@@ -100,20 +105,23 @@ bool safe_with_dampner(int* data, int data_len) {
     // Check all items
     for (int i=0; i<data_len-1; i++) {
         // Check conditions for increasing/decreasing
-        if (increasing && data[i]>data[i+1]){
-            data_v.erase(data_v.begin()+i);
-            return is_safe(&data_v[0], data_len-1);
+        if (increasing && data[i]>data[i+1]) {
+            if (try_erase_option(data_v, i, data_len) || try_erase_option(data_v, i+1, data_len))
+                {return true;}
+            else return false;
         }
         if (!increasing && data[i]<data[i+1]) {
-            data_v.erase(data_v.begin()+i);
-            return is_safe(&data_v[0], data_len-1);
+            if (try_erase_option(data_v, i, data_len) || try_erase_option(data_v, i+1, data_len))
+                {return true;}
+            else return false;
         }
 
         // Check delta conditions
         int change = abs(data[i]-data[i+1]);
         if (change > max_change || change < min_change) {
-            data_v.erase(data_v.begin()+i);
-            return is_safe(&data_v[0], data_len-1);
+            if (try_erase_option(data_v, i, data_len) || try_erase_option(data_v, i+1, data_len))
+                {return true;}
+            else return false;
         }
     }
 
@@ -124,7 +132,7 @@ bool safe_with_dampner(int* data, int data_len) {
 // Run main code here
 int main() {
     // Read file
-    std::vector<std::string> input_lines =  read_file("ref.txt");
+    std::vector<std::string> input_lines =  read_file("input.txt");
 
     int safe_reports = 0; // Result variable
     int safe_w_dampner = 0; // Result part 2
@@ -136,16 +144,29 @@ int main() {
         int arrayLength = std::count(s.begin(), s.end(), ' ')+1;
         int* data = str_to_dat(input_lines[i], ' ');
 
+        std::vector<int> data_v;
+        for (int i=0; i<arrayLength; i++) data_v.push_back(data[i]);
+        data_v.erase(data_v.begin()+1);
+
         // Check if report is safe
         if (is_safe(data, arrayLength))
             safe_reports++;
 
         // Check if report is safe
-        if (safe_with_dampner(data, arrayLength))
+        if (safe_with_dampner(data, arrayLength)) {
+            std::cout << i+1 << std::endl;
             safe_w_dampner++;
+        }
+        else if (is_safe(data, arrayLength-1)) {
+            std::cout << i+1 << std::endl;
+            safe_w_dampner++;
+        }
+        else if (try_erase_option(data_v, 1, arrayLength)||try_erase_option(data_v, 0, arrayLength)) {
+            std::cout << i+1 << std::endl;
+            safe_w_dampner++;
+        }
 
         // Free the data array memory
-        std::cout << std::endl;
         delete[] data;
     }
 
@@ -155,3 +176,8 @@ int main() {
 
     return 0;
 }
+
+// Try 1: 373 -> too low
+// Try 2: 386 -> too low
+// Try 3: 388 -> too low
+// Try 4: 397 -> incorrect
