@@ -1,6 +1,6 @@
 // Day 1
 // Advent of Code 2024
-// 01-12-2024
+// 02-12-2024
 // Timo van Beelen
 
 
