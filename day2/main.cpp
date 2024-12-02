@@ -38,10 +38,11 @@ int* str_to_dat(std::string s, char delim) {
     char* line = strcpy(arr, s.c_str());
 
     // Split char array into integers
-    char delims[1]; 
-    delims[0] = delim;
-    result[0] = std::atoi(strtok(line, delims));
-    for (int i=1; i< arrayLength; i++) {
+    char delims[1];                                 // Function wants char array
+    delims[0] = delim;                              // so we give char array with single element
+
+    result[0] = std::atoi(strtok(line, delims));    // Take the first result
+    for (int i=1; i< arrayLength; i++) {            // Now loop through to get the others
         char* int_in_chars = strtok(NULL, delims);
         result[i] = std::atoi(int_in_chars);
     }
@@ -57,21 +58,23 @@ bool is_safe(int* data, int data_len) {
     if (data[0] < data[1]) increasing = true;
     else if (data[0]==data[1]) return false;
 
-    // Set variables
+    // Limits in change to check
     int max_change = 3;
     int min_change = 1;
 
     // Check all items
     for (int i=0; i<data_len-1; i++) {
-        // Check conditions for increasing/decreasing
+        // Does it keep increasing?
         if (increasing && data[i]>data[i+1]) 
             return false;
+        // Does it keep decreasing?
         if (!increasing && data[i]<data[i+1])
             return false;
 
         // Check delta conditions
         int change = abs(data[i]-data[i+1]);
         if (change > max_change || change < min_change) 
+            // Too much change or no change == bad!
             return false;
     }
 
@@ -96,11 +99,13 @@ bool safe_with_dampner(int* data, int data_len) {
     for (int i=0; i<data_len; i++) data_v.push_back(data[i]);
 
     // Check all items while removing one of the options
-    for (int i=0; i<data_len-1; i++) {
+    for (int i=0; i<data_len; i++) {
+        // Check if the report is safe when removing a number
         if (try_erase_option(data_v, i, data_len))
             return true;
     }
 
+    // Reaching this point means the report is utterly unsafe
     return false;
 }
 
@@ -120,27 +125,17 @@ int main() {
         int arrayLength = std::count(s.begin(), s.end(), ' ')+1;
         int* data = str_to_dat(input_lines[i], ' ');
 
-        std::vector<int> data_v;
-        for (int i=0; i<arrayLength; i++) data_v.push_back(data[i]);
-        data_v.erase(data_v.begin()+1);
 
-        // Check if report is safe
+        // Check if report is safe on its own (pt1)
         if (is_safe(data, arrayLength))
             safe_reports++;
 
-        // Check if report is safe
+
+        // Check if report is safe with dampner case
         if (safe_with_dampner(data, arrayLength)) {
-            std::cout << i+1 << std::endl;
             safe_w_dampner++;
         }
-        else if (is_safe(data, arrayLength-1)) {
-            std::cout << i+1 << std::endl;
-            safe_w_dampner++;
-        }
-        else if (try_erase_option(data_v, 1, arrayLength)||try_erase_option(data_v, 0, arrayLength)) {
-            std::cout << i+1 << std::endl;
-            safe_w_dampner++;
-        }
+
 
         // Free the data array memory
         delete[] data;
