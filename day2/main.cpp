@@ -50,15 +50,58 @@ int* str_to_dat(std::string s, char delim) {
 }
 
 
+// Check the safety of a number array
+bool is_safe(int* data, int data_len) {
+    // See if the system is increasing or not
+    bool increasing = false;
+    if (data[0] < data[1]) increasing = true;
+    else if (data[0]==data[1]) return false;
+
+    // Set variables
+    int max_change = 3;
+    int min_change = 1;
+
+    // Check all items
+    for (int i=0; i<data_len-1; i++) {
+        // Check conditions for increasing/decreasing
+        if (increasing && data[i]>data[i+1]) 
+            return false;
+        if (!increasing && data[i]<data[i+1])
+            return false;
+
+        // Check delta conditions
+        int change = abs(data[i]-data[i+1]);
+        if (change > max_change || change < min_change) 
+            return false;
+    }
+
+    return true;
+}
+
+
 // Run main code here
 int main() {
     // Read file
-    std::vector<std::string> input_lines =  read_file("ref.txt");
+    std::vector<std::string> input_lines =  read_file("input.txt");
 
-    // Transform input lines to an array of numbers
-    int* data = str_to_dat(input_lines[0], ' ');
+    int safe_reports = 0; // Result variable
 
-    delete[] data;
+    // Go through each report to check if it is safe
+    for (int i=0; i<input_lines.size(); i++) {
+        // Transform input lines to an array of numbers
+        std::string s = input_lines[i];
+        int arrayLength = std::count(s.begin(), s.end(), ' ')+1;
+        int* data = str_to_dat(input_lines[i], ' ');
+
+        // Check if report is safe
+        if (is_safe(data, arrayLength))
+            safe_reports++;
+
+        // Free the data array memory
+        delete[] data;
+    }
+
+    std::cout << "Answer 1: " << safe_reports << std::endl;
 
     return 0;
 }
