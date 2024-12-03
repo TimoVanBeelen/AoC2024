@@ -38,11 +38,11 @@ bool donut(std::string input) {
 
     // Keep searching in the line
     while(std::regex_search(input, match, dont_regex)) {
-        std::cout << "found " << match[0] << std::endl;
+        // Only the last part is of interest to check for 'don't()'s
         std::string suff = match.suffix().str();
         if (std::regex_search(suff, match, do_regex)) {
-            std::cout << "found: " << match[0] << std::endl;
-            input = suff;
+            // When one is found, run the while loop again with only this suffix
+            input = match.suffix().str();
             continue;
         }
         else return true;
@@ -53,19 +53,20 @@ bool donut(std::string input) {
 
 
 // Check do or don't, return true if do not (other way round)
+// This can probably be done in a single update function, but this was easier to beun
 bool do_check(std::string input) {
-    // Set up regex for searching the lines
+    // Set up regex for searching the lines (same with above)
     std::regex dont_regex("don't\\(\\)");
     std::regex do_regex("do\\(\\)");
     std::smatch match;
 
     // Keep searching in the line
     while(std::regex_search(input, match, do_regex)) {
-        std::cout << "found " << match[0] << std::endl;
+        // Only the last part is of interest to check for 'don't()'s
         std::string suff = match.suffix().str();
         if (std::regex_search(suff, match, dont_regex)) {
-            std::cout << "found: " << match[0] << std::endl;
-            input = suff;
+            // When one is found, run the while loop again with only this suffix
+            input = match.suffix().str();
             continue;
         }
         else return true;
@@ -114,10 +115,8 @@ std::vector<std::string> find_matches2(std::string input, bool append) {
         if (do_check(match.prefix().str())) dont_append = false;
 
         // Append the match to the vector
-        if (!dont_append) {
+        if (!dont_append)
             matches.push_back(match[0]);
-            std::cout<<"Mul found: "<<match[0]<< std::endl;
-        }
 
         // Update the line for a new search
         input = match.suffix().str();
@@ -178,5 +177,3 @@ int main(int argc, char *argv[]) {
     // END
     return 0;
 }
-
-// Try 1: 99812796 is too high
