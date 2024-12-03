@@ -17,6 +17,7 @@ std::vector<std::string> read_file(char file_name[]) {
     std::ifstream inputFile(file_name);
     std::string line;
 
+    // Tell user what file is read
     std::cout << "Reading: " << file_name << std::endl;
 
     // Store the file contents in a string vector
@@ -50,6 +51,26 @@ std::vector<std::string> find_matches(std::string input) {
 }
 
 
+// Calculate the multiplications found
+int calc_mul(std::string command) {
+    // Set up regex for searching the lines
+    std::regex num_regex("\\d{1,3}");
+    std::smatch match;
+
+    int nums[2];    // We should find two number
+    int i=0;
+    while (std::regex_search(command, match, num_regex)) {
+        // Append the match to the array and increment i
+        nums[i++] = std::stoi(match[0].str());
+
+        // Update the line for a new search
+        command = match.suffix().str();
+    }
+
+    return nums[0]*nums[1];
+}
+
+
 // Main program
 int main(int argc, char *argv[]) {
     // Read file
@@ -59,8 +80,9 @@ int main(int argc, char *argv[]) {
 
     // Run program for each line in the file
     for (std::string line : input_lines) {
-        std::vector<std::string> multipliers = find_matches(line);
-        for (std::string match : multipliers) std::cout << match <<std::endl;
+        std::vector<std::string> multipliers = find_matches(line);      // Find the mul() commands
+        for (std::string item : multipliers)
+            mult_sum += calc_mul(item);
     }
 
 
