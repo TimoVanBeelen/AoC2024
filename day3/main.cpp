@@ -42,7 +42,8 @@ bool donut(std::string input) {
         std::string suff = match.suffix().str();
         if (std::regex_search(suff, match, do_regex)) {
             std::cout << "found: " << match[0] << std::endl;
-             continue;
+            input = suff;
+            continue;
         }
         else return true;
     }
@@ -64,7 +65,8 @@ bool do_check(std::string input) {
         std::string suff = match.suffix().str();
         if (std::regex_search(suff, match, dont_regex)) {
             std::cout << "found: " << match[0] << std::endl;
-             continue;
+            input = suff;
+            continue;
         }
         else return true;
     }
@@ -96,7 +98,7 @@ std::vector<std::string> find_matches(std::string input) {
 
 
 // Function to find the regex matches and return this as string vector (part 2)
-std::vector<std::string> find_matches2(std::string input) {
+std::vector<std::string> find_matches2(std::string input, bool append) {
     // Set up regex for searching the lines
     std::regex mult_regex("mul\\(\\d{1,3},\\d{1,3}\\)");
     std::smatch match;
@@ -105,7 +107,7 @@ std::vector<std::string> find_matches2(std::string input) {
     std::vector<std::string> matches;
 
     // See if there are any matches in the input string and output these
-    bool dont_append = false;   // Only append if there was no don't statement
+    bool dont_append = !append;   // Only append if there was no don't statement
     while (std::regex_search(input, match, mult_regex)) {
         // Check if the match should actually be appended
         if (donut(match.prefix().str())) dont_append = true;
@@ -154,6 +156,7 @@ int main(int argc, char *argv[]) {
     int mult_sum2 = 0;  // Result of part 2
 
     // Run program for each line in the file
+    bool appending = true;
     for (std::string line : input_lines) {
         // Part 1
         std::vector<std::string> multipliers = find_matches(line);      // Find the mul() commands
@@ -161,9 +164,10 @@ int main(int argc, char *argv[]) {
             mult_sum += calc_mul(item);
 
         // Part 2
-        std::vector<std::string> multipliers2 = find_matches2(line);
+        std::vector<std::string> multipliers2 = find_matches2(line, appending);
         for (std::string item : multipliers2)
             mult_sum2 += calc_mul(item);
+        appending = !donut(line);   // Apply the do or don't of the last line (whichever was last)
     }
 
 
@@ -174,3 +178,5 @@ int main(int argc, char *argv[]) {
     // END
     return 0;
 }
+
+// Try 1: 99812796 is too high
