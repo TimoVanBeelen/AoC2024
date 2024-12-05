@@ -9,6 +9,7 @@
 #include <fstream>
 #include <vector>
 #include <regex>
+#include <string.h>
 
 
 // Create a struct for the rules
@@ -33,6 +34,30 @@ std::vector<std::string> read_file(char file_name[]) {
     inputFile.close();  // Close the file after finishing
 
     return input_data;
+}
+
+
+// Function to split string on delim
+std::vector<int> split_to_ints(std::string s, char delim) {
+    // Create an int array with appropriate length
+    int arrayLength = std::count(s.begin(), s.end(), delim)+1;
+    std::vector<int> results;
+
+    // Convert string to char array
+    char arr[s.length()+1];
+    char* line = strcpy(arr, s.c_str());
+
+    // Split char array into integers
+    char delims[1];                                 // Function wants char array
+    delims[0] = delim;                              // so we give char array with single element
+
+    results.push_back(std::atoi(strtok(line, delims)));    // Take the first result
+    for (int i=1; i< arrayLength; i++) {            // Now loop through to get the others
+        char* int_in_chars = strtok(NULL, delims);
+        results.push_back(std::atoi(int_in_chars));
+    }
+
+    return results;
 }
 
 
@@ -84,7 +109,31 @@ int find_num_rules(std::vector<std::string> input_lines) {
 
 
 // Find the manuals that need to be printed (at the bottom of the file)
+std::vector<std::vector<int>> find_manuals(std::vector<std::string> input_lines, int num_manuals) {
+    // Return variable
+    std::vector<std::vector<int>> result;
 
+    // Loop through all manuals
+    for (int i=input_lines.size()-num_manuals; i<input_lines.size(); i++) {
+        // Split on comma and add to vector
+        std::vector<int> split_vect = split_to_ints(input_lines[i], ',');
+        result.push_back(split_vect);
+    }
+
+    return result;
+} 
+
+
+// Check each manual if they adhere to the rules
+bool adheres_to_rules(std::vector<int> manual, int **rules, int num_rules) {
+    // For each element in the manual check the rules
+    for (int i: manual) {
+        // Check if the item does not appear after not allowed
+        
+    }
+
+    return true;
+}
 
 
 // Main program
@@ -95,7 +144,13 @@ int main(int argc, char *argv[]) {
     // Parse input into manuals and rules
     int **rules = find_rules(input_lines);
     int num_rules = find_num_rules(input_lines);
-    // std::vector<int> manuals[] = 
+
+    int num_manuals = input_lines.size()-num_rules-1;
+    std::vector<std::vector<int>> manuals = find_manuals(input_lines, num_manuals);
+
+    for (std::vector<int> manual: manuals) {
+
+    }    
 
     return 0;
 }
