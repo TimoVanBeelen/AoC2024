@@ -56,9 +56,58 @@ int *find_pos(char **matrix, int height, int width) {
 }
 
 
-// Move the guard
-char **update_matrix(char **matrix, int height, int width, int *pos) {
-    
+// Crossing border?
+bool is_going_to_cross(int height, int width, int *pos, int dir) {
+    if (dir == 0 && pos[0] == 0) return true;           // Heading north
+    if (dir == 1 && pos[1] == width-1) return true;     // Heading west
+    if (dir == 2 && pos[0] == height-1) return true;    // Heading south
+    if (dir == 3 && pos[1] == 0) return true;           // Heading east
+    return false;
+}
+
+
+// // Move the guard
+char **update_matrix(char **matrix, int height, int width, int *pos, int dir, char mark) {
+    // Keep on walking until gone
+    while (!is_going_to_cross(height, width, pos, dir)) {
+        // Walk north if no obstacle
+        if (dir == 0 && matrix[pos[0]-1][pos[1]] != '#') {
+            matrix[pos[0]][pos[1]] = mark;
+            pos[0] -= 1;    // Move up
+        } 
+        else if (dir == 1 && matrix[pos[0]][pos[1]+1] != '#') {
+            matrix[pos[0]][pos[1]] = mark;
+            pos[1] += 1;    // Move right
+            
+        }
+        else if (dir == 2 && matrix[pos[0]+1][pos[1]] != '#') {
+            matrix[pos[0]][pos[1]] = mark;
+            pos[0] += 1;    // Move down
+        }
+        else if (dir == 3 && matrix[pos[0]][pos[1]-1] != '#') {
+            matrix[pos[0]][pos[1]] = mark;
+            pos[1] -= 1;    // Move left
+        } else {
+            dir = (dir+1)%4;    // Change the dir, because an obstacle is reached
+        }
+    }
+
+    return matrix;
+}
+
+
+// Count the amount of marks
+int count_marks(char **matrix, int height, int width, char mark) {
+    int nr_marks = 0;   // Amount of marks in the matrix
+
+    // Go through the matrix and count the marks
+    for (int i=0; i<height; i++) {
+        for (int j=0; j<width; j++) {
+            if (matrix[i][j] == mark) nr_marks++;
+        }
+    }
+
+    return nr_marks;
 }
 
 
@@ -77,7 +126,10 @@ int main(int argc, char *argv[]) {
 
     // Walk the guard where they need to go and replace each step with an X
     int dir = 0;    // Set the walking direction, north = 0, west = 1, south = 2, east = 3
-    // Walk to next obstacle, check if border is reached, update the direction
+    char mark = 'X';
+    matrix = update_matrix(matrix, height, width, pos, dir, mark);
+
+    std::cout << "Answer 1: " << count_marks(matrix, height, width, mark)+1 << std::endl;
 
     return 0;
 }
