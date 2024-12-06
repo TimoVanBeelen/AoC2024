@@ -62,28 +62,32 @@ std::vector<int> split_to_ints(std::string s, char delim) {
 
 
 // Find the rules of page orders
-int **find_rules(std::vector<std::string> input_lines) {
+std::vector<std::vector<int>> find_rules(std::vector<std::string> input_lines) {
     // Set the regex up for the delims and digits
-    std::regex delim("|");
-    std::smatch match;
+    std::regex digend("[0-9]+$");
+    std::regex digstart("^[0-9]+");
+    std::smatch match1;     // Matching to two pairs of digits
+    std::smatch match2;
 
     // Output variable
-    int *rules[input_lines.size()];
-    for (int i = 0; i < input_lines.size(); i++) 
-        rules[i] = new int[2];
+    std::vector<std::vector<int>> rules;
     
-
+    // Find all int couples
     for (int i=0; i<input_lines.size(); i++) {
         // Find the delimiter
         std::string line = input_lines[i];
-        std::regex_search(line, match, delim);
+        std::regex_search(line, match1, digstart);
+        std::cout << match1.str() << std::endl;
 
         // If the delimiter is not in the line: stop
-        if (match.empty()) break;
+        if (match1.empty() || line == "") break;
 
-        // Put the prefix and suffix into the array
-        rules[i][0] = std::stoi(match.prefix().str());
-        rules[i][1] = std::stoi(match.suffix().str());
+        // Put matches into numbers in the array
+        std::regex_search(line, match2, digend);
+        std::cout << match2.str() << std::endl;
+        rules[i][0] = std::stoi(match1.str());
+        rules[i][1] = std::stoi(match2.str());
+        std::cout<<rules[i][0]<<"\t"<<rules[i][1]<<std::endl;
     }
     
     return rules;
@@ -93,14 +97,14 @@ int **find_rules(std::vector<std::string> input_lines) {
 // Find the number of rules
 int find_num_rules(std::vector<std::string> input_lines) {
     // Set the regex up for the delims and digits
-    std::regex delim("|");
+    std::regex digs("\\d+");
     std::smatch match;
     int i = 0;
 
     // Go through all lines until the delim is not found
     for (std::string line: input_lines) {
         i++;
-        std::regex_search(line, match, delim);
+        std::regex_search(line, match, digs);
         if (match.empty()) return i;            // If delim not found, return i
     }
 
@@ -116,6 +120,7 @@ std::vector<std::vector<int>> find_manuals(std::vector<std::string> input_lines,
     // Loop through all manuals
     for (int i=input_lines.size()-num_manuals; i<input_lines.size(); i++) {
         // Split on comma and add to vector
+        std::cout << input_lines[i] << std::endl;
         std::vector<int> split_vect = split_to_ints(input_lines[i], ',');
         result.push_back(split_vect);
     }
@@ -142,14 +147,18 @@ int main(int argc, char *argv[]) {
     std::vector<std::string> input_lines = read_file(argv[1]);
 
     // Parse input into manuals and rules
-    int **rules = find_rules(input_lines);
+    std::vector<std::vector<int>> rules = find_rules(input_lines);
     int num_rules = find_num_rules(input_lines);
+
+    for (int i=0; i<num_rules; i++) {
+        std::cout<<rules[i][0] << "\t" << rules[i][1] << std::endl;
+    }
 
     int num_manuals = input_lines.size()-num_rules-1;
     std::vector<std::vector<int>> manuals = find_manuals(input_lines, num_manuals);
 
     for (std::vector<int> manual: manuals) {
-
+        // For each manual
     }    
 
     return 0;
