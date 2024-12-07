@@ -23,6 +23,12 @@ def get_nums(lines: list):
     return numbers
 
 
+# Part 2: concatenate numbers
+def concat(x: int, y: int):
+    base10 = math.ceil(math.log10(y))
+    return x*math.pow(10, base10)+y
+
+
 # Check itterative with each last component being a summation and do this for all components before
 def itteratively_correct(sum: list):
     # Check if the length of the components is appropriate to be checked
@@ -31,18 +37,18 @@ def itteratively_correct(sum: list):
 
     total = sum[0]
     components = sum[1]
+    
+    last_comp = components[-1]              # Get last component for use
+    del components[-1]                      # Remove last part of components, as it is used
+    comp_copy = components.copy()           # Python shenanigans
 
-    if total%components[-1] > 0:                # Last item cannot be multiplications
-        total = total-components[-1]            # Take total minus components (addition in the sum)
-        del components[-1]                      # Remove component as it is used already
-        return itteratively_correct([total, components])    # Check if the sum is correct
-    else:
-        last_comp = components[-1]              # Get last component for use
-        del components[-1]                      # Remove last part of components, as it is used
-        comp_copy = components.copy()           # Python shenanigans
-        if itteratively_correct([total-last_comp, components]): return True     # Try with using addition
-        elif itteratively_correct([total/last_comp, comp_copy]): return True    # Try with using multiplication
-        else: return False
+    tot_min = total-last_comp
+    if total%last_comp > 0:                # Last item cannot be multiplications
+        return itteratively_correct([tot_min, components])    # Check if the sum is correct
+
+    if itteratively_correct([tot_min, components]): return True     # Try with using addition
+    elif itteratively_correct([total/last_comp, comp_copy]): return True    # Try with using multiplication
+    else: return False
     
 
 

@@ -91,5 +91,6 @@
         "variant": "cpp",
         "format": "cpp",
         "stdfloat": "cpp"
-    }
+    },
+    "python.REPL.enableREPLSmartSend": false
 }
