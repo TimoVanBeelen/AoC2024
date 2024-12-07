@@ -76,6 +76,34 @@ int check_vertically(std::vector<std::string> input_lines, std::string words[]) 
 }
 
 
+// Check each diagonal
+int check_diagonal(std::vector<std::string> input_lines, std::string words[]) {
+    // Create new strings of the diagonals (ltr)
+    int hsize = input_lines[0].size();
+    int vsize = input_lines.size();
+
+    std::vector<std::string> new_lines;     // Vector that stores the lines
+    for (size_t i = 0; i < hsize; i++) {
+        std::string new_line;               // Create a new line here
+        if (vsize <= hsize-i) {
+            for (size_t j = 0; j < vsize; j++)
+                new_line += input_lines[j].at(j);
+        }
+        else {
+            for (size_t j = 0; j < hsize-i; j++)
+                new_line += input_lines[j].at(j);
+        }
+        
+    }
+    
+
+    // Create new strings of the diagonals (rtl)
+
+
+    return 0;
+}
+
+
 // Main program
 int main(int argc, char *argv[]) {
     // Read file
