@@ -26,28 +26,45 @@ def get_nums(lines: list):
 # Part 2: concatenate numbers
 def concat(x: int, y: int):
     base10 = math.ceil(math.log10(y))
-    return x*math.pow(10, base10)+y
+    return int(x*math.pow(10, base10)+y)
 
 
-# Check itterative with each last component being a summation and do this for all components before
-def itteratively_correct(sum: list):
-    # Check if the length of the components is appropriate to be checked
-    if len(sum[1]) == 1 and int(sum[0]) == sum[1][0]: return True       # If last remaining item is same as total, it is correct
-    elif len(sum[1]) <= 1: return False                                 # Otherwise: nah
-
-    total = sum[0]
-    components = sum[1]
+# Check the options itteratively
+def is_correct_on_concat(sum: list):
+    print(sum)
+    # Check if the running sum is equal to the final answer
+    if len(sum[1]) <= 1:
+        if sum[0] == sum[1][0]: return True
+        else: 
+            print("FALSE")
+            return False
     
-    last_comp = components[-1]              # Get last component for use
-    del components[-1]                      # Remove last part of components, as it is used
-    comp_copy = components.copy()           # Python shenanigans
+    if sum[0] < sum[1][0]: return False
 
-    tot_min = total-last_comp
-    if total%last_comp > 0:                # Last item cannot be multiplications
-        return itteratively_correct([tot_min, components])    # Check if the sum is correct
+    # Split the input into the two parts
+    components = sum[1]
 
-    if itteratively_correct([tot_min, components]): return True     # Try with using addition
-    elif itteratively_correct([total/last_comp, comp_copy]): return True    # Try with using multiplication
+    # Get the different options
+    mult = components[0]*components[1]
+    addition = components[0]+components[1]
+    conc = concat(components[0], components[1])
+
+    # Delete the two components used
+    del components[0]
+    del components[0]
+
+    # Append the new value at the start
+    mult_comp = components.copy()
+    mult_comp.insert(0, mult)
+    add_comp = components.copy()
+    add_comp.insert(0, addition)
+    conc_comp = components.copy()
+    conc_comp.insert(0, conc)
+
+    # Return the found value, itterate until an answer is found
+    if is_correct_on_concat([sum[0], mult_comp]): return True
+    elif is_correct_on_concat([sum[0], add_comp]): return True
+    elif is_correct_on_concat([sum[0], conc_comp]): return True
     else: return False
     
 
@@ -63,7 +80,9 @@ if __name__ == "__main__":
     # Go through each sum and if the answer can be found, add the ans to the result
     result = 0
     for sum in nums:
-        if itteratively_correct(sum):       # If correct, add to result
+        if is_correct_on_concat(sum):       # If correct, add to result
             result += sum[0]
 
     print("Answer 1: ", result)
+
+    # Try 1: 81902718314755 -> too low

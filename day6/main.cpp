@@ -68,23 +68,24 @@ bool is_going_to_cross(int height, int width, int *pos, int dir) {
 
 // // Move the guard
 char **update_matrix(char **matrix, int height, int width, int *pos, int dir, char mark) {
+    
     // Keep on walking until gone
     while (!is_going_to_cross(height, width, pos, dir)) {
         // Walk north if no obstacle
-        if (dir == 0 && matrix[pos[0]-1][pos[1]] != '#') {
+        if (dir == 0 && (matrix[pos[0]-1][pos[1]] != '#' || matrix[pos[0]-1][pos[1]] != 'O')) {
             matrix[pos[0]][pos[1]] = mark;
             pos[0] -= 1;    // Move up
         } 
-        else if (dir == 1 && matrix[pos[0]][pos[1]+1] != '#') {
+        else if (dir == 1 && (matrix[pos[0]][pos[1]+1] != '#' || matrix[pos[0]][pos[1]+1] != 'O')) {
             matrix[pos[0]][pos[1]] = mark;
             pos[1] += 1;    // Move right
             
         }
-        else if (dir == 2 && matrix[pos[0]+1][pos[1]] != '#') {
+        else if (dir == 2 && (matrix[pos[0]+1][pos[1]] != '#' || matrix[pos[0]+1][pos[1]] != 'O')) {
             matrix[pos[0]][pos[1]] = mark;
             pos[0] += 1;    // Move down
         }
-        else if (dir == 3 && matrix[pos[0]][pos[1]-1] != '#') {
+        else if (dir == 3 && (matrix[pos[0]][pos[1]-1] != '#' || matrix[pos[0]][pos[1]-1] != 'O')) {
             matrix[pos[0]][pos[1]] = mark;
             pos[1] -= 1;    // Move left
         } else {
@@ -111,6 +112,55 @@ int count_marks(char **matrix, int height, int width, char mark) {
 }
 
 
+// Get a spot for an obstacle, only consider places where we have an X placed (otherwise we do not even move there)
+int *obs_pos(char **matrix, int height, int width, int *old_pos, char mark) {
+    int *pos;       // The next position to test for an obstacle
+
+    // Loop through the matrix
+    for (int i=old_pos[0]; i<height; i++) {
+        for (int j=old_pos[1]; j<width; j++) {
+            if (matrix[i][j] == mark) {
+                // Next position found, return it
+                pos[0] = i;
+                pos[1] = j;
+                return pos;
+            }
+        }
+    }
+
+    return pos;
+}
+
+
+// Find loops
+int loops(char **matrix) {
+    
+    return 0;
+}
+
+
+// Check if a position is a repetition
+int pos_is_rep(char **matrix, int height, int width, int *pos, char mark) {
+    int result = 0;
+
+    // Initialize the position of the obstacle
+    int *obs;
+    obs[0] = 0;
+    obs[1] = 0;
+
+    for (int i=0; i<143; i++) {
+        obs = obs_pos(matrix, height, width, obs, mark);
+        matrix[obs[0]][obs[1]] = 'O';
+        matrix = update_matrix(matrix, height, width, pos, 0, mark);
+        if (matrix[0][0] == '1') result++;
+        matrix[obs[0]][obs[1]] = '-';
+        std::cout<<result<<std::endl;
+    }
+
+    return result;
+}
+
+
 // Run main code here
 int main(int argc, char *argv[]) {
     // Read file
@@ -128,8 +178,12 @@ int main(int argc, char *argv[]) {
     int dir = 0;    // Set the walking direction, north = 0, west = 1, south = 2, east = 3
     char mark = 'X';
     matrix = update_matrix(matrix, height, width, pos, dir, mark);
+    int resultA = count_marks(matrix, height, width, mark)+1;
 
-    std::cout << "Answer 1: " << count_marks(matrix, height, width, mark)+1 << std::endl;
+    int resultB = 0;
+
+    std::cout << "Answer 1: " << resultA << std::endl;
+    std::cout << "Answer 2: " << resultB << std::endl;
 
     return 0;
 }
