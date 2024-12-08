@@ -25,18 +25,17 @@ def get_nums(lines: list):
 
 # Part 2: concatenate numbers
 def concat(x: int, y: int):
-    base10 = math.ceil(math.log10(y))
-    return int(x*math.pow(10, base10)+y)
+    return int(str(x)+str(y))
 
 
 # Check the options itteratively
 def is_correct_on_concat(sum: list):
-    print(sum)
+    # print(sum)
     # Check if the running sum is equal to the final answer
     if len(sum[1]) <= 1:
         if sum[0] == sum[1][0]: return True
         else: 
-            print("FALSE")
+            # print("FALSE")
             return False
     
     if sum[0] < sum[1][0]: return False
@@ -83,6 +82,4 @@ if __name__ == "__main__":
         if is_correct_on_concat(sum):       # If correct, add to result
             result += sum[0]
 
-    print("Answer 1: ", result)
-
-    # Try 1: 81902718314755 -> too low
+    print("Answer: ", result)
