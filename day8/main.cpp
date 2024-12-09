@@ -8,8 +8,6 @@
 #include <iostream>
 #include <fstream>
 #include <vector>
-#include <regex>
-#include <string.h>
 
 
 // Create a struct for a char matrix
