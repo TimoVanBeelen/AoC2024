@@ -131,7 +131,7 @@ int *get_new_pos(int *pos, int up, int right) {
 int move_along(map *m, int* pos) {
     // Set the output variable amd check the position as visited
     int score = 0;                          // Set a score
-    m->set_fld_visited(pos[0], pos[1], true);     // Set field to visited
+    //m->set_fld_visited(pos[0], pos[1], true);     // Set field to visited
 
     // See if a top is reached
     if (m->get_fld_val(pos[0], pos[1]) == 9) {
