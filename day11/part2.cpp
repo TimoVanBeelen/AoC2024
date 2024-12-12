@@ -1,6 +1,6 @@
 // Day 11
 // Advent of Code 2024
-// 11-12-2024
+// 12-12-2024
 // Timo van Beelen
 
 // Packages needed in the program
@@ -140,6 +140,3 @@ int main(int argc, char *argv[]) {
     std::cout << "Answer: " << stonesAmount << std::endl;
     return 0;
 }
-
-// Try 1: 194295033 -> too low :(
-// Try 2: 229682160383225
