@@ -45,6 +45,7 @@ void fill_fields(map *m, std::vector<std::string> input) {
     for (int i=0; i<m->get_height(); i++) {
         for (int j=0; j<m->get_width(); j++) {
             m->set_val(i, j, input[i].at(j));
+            m->is_visited[i][j] = false;
         }
     }
 }
@@ -117,6 +118,10 @@ std::vector<std::pair<int, int>> pos_of_neighbours(map *m, int x, int y) {
     char value = m->get_val(x, y);              // Get the mark of the current field
 
     // For all borderings of other fields, check mark and add to vector
+    if (x != 0 && m->get_val(x-1, y) == value)
+        result.push_back({x-1, y});
+    if (y != 0 && m->get_val(x, y-1) == value)
+        result.push_back({x, y-1});
     if (x != m->get_height()-1 && m->get_val(x+1, y) == value)
         result.push_back({x+1, y});
     if (y != m->get_width()-1 && m->get_val(x, y+1) == value)
@@ -131,14 +136,20 @@ std::pair<int, int> calc_plot_cost(map *m, int x_start, int y_start) {
     // Set up variables
     int area = 1;           // Area of the current position
     int perim = 4;          // Each field has a perimiter of 4, start with that
-    char mark = m->get_val(x_start, y_start);   // Get the mark of the field
     m->is_visited[x_start][y_start] = true;     // We have visited, so true  
 
     // While there is a neighbour with same mark, add to area and perimiter
-    std::vector<std::pair<int, int>> neightbours = pos_of_neighbours(m, x_start, y_start);
-    for (std::pair<int, int> neightbour: neightbours)
+    std::vector<std::pair<int, int>> neighbours = pos_of_neighbours(m, x_start, y_start); 
+    for (std::pair<int, int> neighbour: neighbours){
+        perim --;                                                       // Remove the perim count for neighbouring fields of the same kind
+        if (m->is_visited[neighbour.first][neighbour.second]) continue; // don't count double
+        
+        std::pair<int, int> itres;
+        itres = calc_plot_cost(m, neighbour.first, neighbour.second);   // Get the result of the iteration
+        area += itres.first;                                            
+        perim += itres.second;                                        
+    }      
 
-    std::pair<int, int> result = {area, perim};
     return {area, perim};
 }
 
@@ -163,21 +174,25 @@ int main(int argc, char *argv[]) {
     int fence_cost = 0;
     for (int i=0; i<plots.get_height()*plots.get_width(); i++) {
         // Get the field position
-        int x=floor(i/4);
-        int y=i%4;
+        int x=floor(i/plots.get_width());
+        int y=i%plots.get_width();
 
         // If already taken into account: don't do that again
+        std::cout << "checking " << x << ',' << y << '\n';
         if (plots.is_visited[x][y]) continue;
+        std::cout << x << ',' << y << " not visited" << '\n';
 
         // Calculate the cost of the fence of a certain plot and add to total
         std::pair<int, int> APpair = calc_plot_cost(&plots, x, y);
+        std::cout << "Area: " << APpair.first << " and perim: " << APpair.second << '\n';
+        std::cout << "Resulting in costs of: " << APpair.first*APpair.second << '\n' << '\n';
         fence_cost += APpair.first * APpair.second;
     }
 
-    for (field f: fields){
-        std::cout << f.c << " " << f.area << " " << f.perim << '\n';
-        fence_cost += f.area*f.perim;
-    }
+    // for (field f: fields){
+    //     std::cout << f.c << " " << f.area << " " << f.perim << '\n';
+    //     fence_cost += f.area*f.perim;
+    // }
 
     std::cout << "Answer: " << fence_cost << std::endl;
     return 0;
