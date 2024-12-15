@@ -59,7 +59,7 @@ std::vector<std::pair<int, int>> pos_of_neighbours(map *m, int x, int y) {
 // Get the position(s) of neighbouring field(s) with the same mark
 std::vector<std::pair<int, int>> pos_of_neighbours(map *m, int x, int y, char value) {
     std::vector<std::pair<int, int>> result;    // Return a vector with the neighbours that need to be accounted for
-
+    
     // For all borderings of other fields, check mark and add to vector
     if (x != 0 && m->get_val(x-1, y) == value)
         result.push_back({x-1, y});
@@ -115,20 +115,68 @@ std::pair<int, int> calc_plot_cost(map *m, int x_start, int y_start) {
 }
 
 
+// Check if a position is on a diagonal of another position
+bool onDiagonal(map *m, std::pair<int, int> pos1, std::pair<int, int> pos2) {
+    // Check the left top diagonal position
+    if (pos1.first > 0 && pos1.second > 0)
+        return (pos2.first == pos1.first-1 && pos2.second == pos1.second-1);
+    // Check the right top diagonal position
+    if (pos1.first > 0 && pos1.second < m->get_width()-1)
+        return (pos2.first == pos1.first-1 && pos2.second == pos1.second+1);
+    // Check the left bottom diagonal position
+    if (pos1.first < m->get_height()-1 && pos1.second > 0)
+        return (pos2.first == pos1.first+1 && pos2.second == pos1.second-1);
+    // Check the right bottom diagonal position
+    if (pos1.first < m->get_height()-1 && pos1.second < m->get_width()-1)
+        return (pos2.first == pos1.first+1 && pos2.second == pos1.second+1);
+
+    // Default response
+    return false;
+}
+
+
 // Calculate how much extra perimiter is needed
 int extra_perimiter(map *m, int x, int y, std::vector<std::pair<int, int>> neighbours) {
     // Get the 'anti' location
     std::vector<std::pair<int, int>> diff_neighbours = next_with_other_mark(m, x, y, m->get_val(x, y));
-    for (std::pair<int, int> )
+    std::vector<std::pair<int, int>> next_to_neighbour;
+    int diagonalen = 0;
 
     // Switch dependent on diagonals
     switch (neighbours.size())
     {
     case 1:
-        // Either 0, 2 or 3
+        next_to_neighbour = pos_of_neighbours(m, neighbours[0].first, neighbours[0].second);
+        for (std::pair<int, int> schuine_buurman: next_to_neighbour) {
+            if (onDiagonal(m, {x, y}, schuine_buurman)) diagonalen++;
+        }
+        if (diagonalen == 0) return 0;
+        if (diagonalen == 1) return 2;
+        if (diagonalen == 2) return 3;
         break;
+    
+    case 2:
+        next_to_neighbour = pos_of_neighbours(m, neighbours[0].first, neighbours[0].second);
+        for (std::pair<int, int> schuine_buurman: next_to_neighbour) {
+            if (onDiagonal(m, {x, y}, schuine_buurman)) diagonalen++;
+        }
+        next_to_neighbour = pos_of_neighbours(m, neighbours[1].first, neighbours[1].second);
+        for (std::pair<int, int> schuine_buurman: next_to_neighbour) {
+            if (onDiagonal(m, {x, y}, schuine_buurman)) diagonalen++;
+        }
+        if (diagonalen == 1) return -2;
+        if (diagonalen == 3) return 2; // Not necessarily true -> look at the diff_neighbours as well
+        if (diagonalen == 4) return 4;
+        break;
+
     case 3:
-        // Either -4, -2 or 0
+        if (x == 0 || y == 0 || x == m->get_height()-1 || y == m->get_width()-1) return 0;
+        next_to_neighbour = pos_of_neighbours(m, diff_neighbours[0].first, diff_neighbours[0].second, m->get_val(x, y));
+        for (std::pair<int, int> schuine_buurman: next_to_neighbour) {
+            if (onDiagonal(m, {x, y}, schuine_buurman)) diagonalen++;
+        }
+        if (diagonalen == 0) return -4;
+        if (diagonalen == 1) return -2;
         break;
     case 4:
         return -4;
@@ -140,25 +188,24 @@ int extra_perimiter(map *m, int x, int y, std::vector<std::pair<int, int>> neigh
 
 
 // Itteratively check each field and return the (area, perim) pair
-std::pair<int, int> buy_in_bulk(map *m, int x_start, int y_start) {
+int buy_in_bulk(map *m, int x_start, int y_start, int *perimptr) {
     // Set up variables
-    int area = 1;           // Area of the current position
-    int perim = 0;          // Each field has a perimiter of 4, start with that
+    int area = 1;                               // Area of the current position
     m->is_visited[x_start][y_start] = true;     // We have visited, so true  
 
     // Check where the neighbours of the same mark are and use that to get the addition of perimiter
     std::vector<std::pair<int, int>> neighbours = pos_of_neighbours(m, x_start, y_start);
-    perim += extra_perimiter(m, x_start, y_start, neighbours);
+    int dperim = extra_perimiter(m, x_start, y_start, neighbours);
+    std::cout << "PERIM ADDITION OF " << dperim << ", pos: " << x_start << "," << y_start << '\n';
+    perimptr += dperim;
 
     // While there is a neighbour with same mark, add to area and perimiter
     for (std::pair<int, int> neighbour: neighbours){
         if (m->is_visited[neighbour.first][neighbour.second]) continue; // don't count double
-        std::pair<int, int> itres;
-        itres = calc_plot_cost(m, neighbour.first, neighbour.second);   // Get the result of the iteration
-        area += itres.first;                                        
+        area += buy_in_bulk(m, neighbour.first, neighbour.second, perimptr);   // Get the result of the iteration                                      
     }      
 
-    return {area, perim};
+    return area;
 }
 
 
@@ -189,7 +236,9 @@ int main(int argc, char *argv[]) {
         std::cout << x << ',' << y << " not visited" << '\n';
 
         // Calculate the cost of the fence of a certain plot and add to total
-        std::pair<int, int> APpair = calc_plot_cost(&plots, x, y);
+        int perim = 4;
+        int area = buy_in_bulk(&plots, x, y, &perim);
+        std::pair<int, int> APpair = {area, perim};
         std::cout << "Area: " << APpair.first << " and perim: " << APpair.second << '\n';
         std::cout << "Resulting in costs of: " << APpair.first*APpair.second << '\n' << '\n';
         fence_cost += APpair.first * APpair.second;
