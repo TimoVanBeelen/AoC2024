@@ -7,13 +7,22 @@
 #include <iostream>
 #include <fstream>
 #include <vector>
+#include <chrono>
+
+using namespace std::chrono;
 
 
 // Structures 
 struct guard {
     std::pair<int, int> pos;
     int dir;
+
+    guard (std::pair<int, int> startPos) {
+        this->pos = startPos;
+        this->dir = 0;  
+    }
 };
+
 struct matrix {
     int width;
     int height;
@@ -34,6 +43,18 @@ struct matrix {
                 this->last_dir[i][j] = -1;
         }
     }
+
+    int get_last_dir (std::pair<int, int> pos) {
+        return this->last_dir[pos.first][pos.second];
+    }
+
+    void reset_dirs() {
+        for (int x=0; x<this->width; x++) {
+            for (int y=0; y<this->height; y++) {
+                this->last_dir[x][y] = -1;
+            }
+        }
+    }
 };
 
 // Read file and return string vector with all lines
@@ -52,17 +73,21 @@ std::vector<std::string> read_file(std::string file_name) {
 
 
 // Create a char matrix from a string array
-void strarr_to_chararr(std::vector<std::string> *string_array, matrix *m) {
-    for (int i = 0; i < m->width; i++) {
-        for (int j=0; j<m->height; j++) {            // Set each character of the string to the correct char in the char array
+void strarr_to_chararr(std::vector<std::string> *string_array, matrix *m) 
+{
+    for (int i = 0; i < m->width; i++) 
+    {
+        for (int j=0; j<m->height; j++)          // Set each character of the string to the correct char in the char array
+        {            
             m->val[i][j] = string_array->at(i).at(j);
         }
     }
 }
 
 
-// // Find the initial position of the guard
-std::pair<int, int> find_pos(matrix *m) {
+// Find the initial position of the guard
+std::pair<int, int> find_pos(matrix *m) 
+{
     std::pair<int, int> pos;                     // Create a variable of the returning position
     for (int y=0; y<m->height; y++) {
         for (int x=0; x<m->width; x++){          // Go through the whole matrix
@@ -78,59 +103,117 @@ std::pair<int, int> find_pos(matrix *m) {
 
 
 // // Crossing border?
-// bool is_going_to_cross(map m, guard grd) {
-//     if (grd.dir == 0 && grd.pos.x == 0) return true;           // Heading north
-//     if (grd.dir == 1 && grd.pos.y == m.width-1) return true;     // Heading west
-//     if (grd.dir == 2 && grd.pos.x == m.height-1) return true;    // Heading south
-//     if (grd.dir == 3 && grd.pos.y == 0) return true;           // Heading east
-//     return false;
-// }
+bool is_going_to_cross(matrix *m, guard *grd) 
+{
+    if (grd->dir == 0 && grd->pos.first  == 0) return true;              // Heading north
+    if (grd->dir == 1 && grd->pos.second == m->width-1) return true;     // Heading west
+    if (grd->dir == 2 && grd->pos.first  == m->height-1) return true;    // Heading south
+    if (grd->dir == 3 && grd->pos.second == 0) return true;              // Heading east
+    return false;
+}
 
 
-// // Move the guard
-// map update_matrix(map m, guard grd, char mark) {
-    
-//     // Keep on walking until gone
-//     while (!is_going_to_cross(m, grd)) {
-//         // Walk north if no obstacle
-//         if (grd.dir == 0 && (m.fields[grd.pos.x-1][grd.pos.y].c != '#' || m.fields[grd.pos.x-1][grd.pos.y].c != 'O')) {
-//             m.fields[grd.pos.x][grd.pos.y].c = mark;
-//             grd.pos.x -= 1;    // Move up
-//         } 
-//         else if (grd.dir == 1 && (m.fields[grd.pos.x][grd.pos.y+1].c != '#' || m.fields[grd.pos.x][grd.pos.x+1].c != 'O')) {
-//             m.fields[grd.pos.x][grd.pos.x].c = mark;
-//             grd.pos.x += 1;    // Move right
+// Move the guard
+bool update_matrix(matrix *m, guard *grd, char mark) 
+{
+    // Keep on walking until gone
+    while (!is_going_to_cross(m, grd)) {
+        // Walk north if no obstacle
+        if (grd->dir == 0 && (m->val[grd->pos.first-1][grd->pos.second] != '#')) 
+        {
+            grd->pos.first -= 1;            // Move up
+        } 
+        else if (grd->dir == 1 && (m->val[grd->pos.first][grd->pos.second+1] != '#')) 
+        {
+            grd->pos.second += 1;           // Move right
             
-//         }
-//         else if (grd.dir == 2 && (m.fields[grd.pos.x+1][grd.pos.x].c != '#' || m.fields[grd.pos.x+1][grd.pos.x].c != 'O')) {
-//             m.fields[grd.pos.x][grd.pos.x].c = mark;
-//             grd.pos.x += 1;    // Move down
-//         }
-//         else if (grd.dir == 3 && (m.fields[grd.pos.x][grd.pos.x-1].c != '#' || m.fields[grd.pos.x][grd.pos.x-1].c != 'O')) {
-//             m.fields[grd.pos.x][grd.pos.x].c = mark;
-//             grd.pos.x -= 1;    // Move left
-//         } else {
-//             grd.dir = (grd.dir+1)%4;    // Change the dir, because an obstacle is reached
-//         }
-//     }
+        }
+        else if (grd->dir == 2 && (m->val[grd->pos.first+1][grd->pos.second] != '#')) 
+        {
+            grd->pos.first += 1;            // Move down
+        }
+        else if (grd->dir == 3 && (m->val[grd->pos.first][grd->pos.second-1] != '#')) 
+        {
+            grd->pos.second -= 1;           // Move left
+        } 
+        else 
+        {
+            grd->dir = (grd->dir+1)%4;      // Change the dir, because an obstacle is reached
+        }
+        m->val[grd->pos.first][grd->pos.second] = mark;
 
-//     return m;
-// }
+        // Change the field's last direction
+        if (grd->dir == m->get_last_dir(grd->pos)) return true;
+        m->last_dir[grd->pos.first][grd->pos.second] = grd->dir;
+    }
+
+    return false;
+}
 
 
-// Count the amount of marks
-// int count_marks(map m, char mark) {
-//     int nr_marks = 0;   // Amount of marks in the matrix
+// Function to rotate
+int rotate(matrix *m, guard *grd, int dir) 
+{
+    if (dir == 0 && m->val[grd->pos.first][grd->pos.second+1] == '#') 
+    {
+        return 2;
+    }
+    else if (dir == 1 && m->val[grd->pos.first+1][grd->pos.second] == '#') 
+    {
+        return 3;
+    }
+    else if (dir == 2 && m->val[grd->pos.first][grd->pos.second-1] == '#') 
+    {
+        return 0;
+    }
+    else if (dir == 3 && m->val[grd->pos.first-1][grd->pos.second] == '#') 
+    {
+        return 1;
+    }
+    else return (dir+1)%4;
+}
 
-//     // Go through the matrix and count the marks
-//     for (int i=0; i<m.height; i++) {
-//         for (int j=0; j<m.width; j++) {
-//             if (m.fields[i][j].c == mark) nr_marks++;
-//         }
-//     }
 
-//     return nr_marks;
-// }
+// Move the guard
+bool update_matrix(matrix *m, guard *grd) 
+{
+    bool going_back = false;
+    // Keep on walking until gone
+    while (!is_going_to_cross(m, grd)) {
+        // Walk north if no obstacle
+        if (grd->dir == 0 && (m->val[grd->pos.first-1][grd->pos.second] != '#')) 
+        {
+            grd->pos.first -= 1;            // Move up
+        } 
+        else if (grd->dir == 1 && (m->val[grd->pos.first][grd->pos.second+1] != '#')) 
+        {
+            grd->pos.second += 1;           // Move right
+            
+        }
+        else if (grd->dir == 2 && (m->val[grd->pos.first+1][grd->pos.second] != '#')) 
+        {
+            grd->pos.first += 1;            // Move down
+        }
+        else if (grd->dir == 3 && (m->val[grd->pos.first][grd->pos.second-1] != '#')) 
+        {
+            grd->pos.second -= 1;           // Move left
+        } 
+        else 
+        {
+            int new_dir = rotate(m, grd, grd->dir);     // Change the dir, because an obstacle is reached
+            if (abs(grd->dir)-new_dir > 1 && going_back) return true;
+            grd->dir = new_dir;       
+        }
+
+        // Change the field's last direction
+        if (grd->dir == m->get_last_dir(grd->pos)) return true;
+        if ((grd->dir+2)%4 == m->get_last_dir(grd->pos)) going_back = true;
+        else going_back = false;
+        m->last_dir[grd->pos.first][grd->pos.second] = grd->dir;
+    }
+
+    return false;
+}
 
 
 // Get a spot for an obstacle, only consider places where we have an X placed (otherwise we do not even move there)
@@ -169,6 +252,7 @@ int main(int argc, char *argv[]) {// Check if there are enough arguments
         std::cout << "Not enough input arguments" << '\n';
         return 0;
     }
+    auto start = high_resolution_clock::now();  
 
     // Read file
     std::vector<std::string> input_lines =  read_file(argv[1]);
@@ -177,30 +261,39 @@ int main(int argc, char *argv[]) {// Check if there are enough arguments
     matrix map = matrix(input_lines.size(), input_lines[0].size());
     std::cout << "Map: " << map.width << "x" << map.height << "\n";
     strarr_to_chararr(&input_lines, &map);
-    std::pair<int, int> startingPos = find_pos(&map);
-
-    print_map(&map);
-
-    // for (int i=0; i<m.height; i++) {
-    //     for (int j=0; i<m.width; j++) {
-    //         std::cout << map[i][j].c;
-    //     }
-    //     std::cout << "\n";
-    // }
+    std::pair<int, int> starting_pos = find_pos(&map);
 
     // Create a guard struct
-    // guard grd;
-    // grd.pos = find_pos(m);
-    // grd.dir = 0;  // Set the walking direction, north = 0, west = 1, south = 2, east = 3
+    guard grd = guard(starting_pos);
 
-    // char mark = 'X';
-    // m = update_matrix(m, grd, mark);
-    // int resultA = count_marks(m, mark)+1;
+    // Run to see which fields might create a loop and reset the system
+    update_matrix(&map, &grd, 'X');
+    map.reset_dirs();
+    grd.pos = starting_pos;
+    grd.dir = 0;
 
-    int resultB = 0;
+    // Loop through the possible fields and see if a loop is created. 8.60 is the problem
+    int res = 0;
+    for (int x=0; x<map.width; x++) {
+        for (int y=0; y<map.height; y++) {
+            if (map.val[x][y] != 'X' || map.val[x][y] == '#' || (grd.pos.first == x && grd.pos.second == y) ) continue;
+            
+            map.val[x][y] = '#';
+            if (update_matrix(&map, &grd)) res++;
+            map.val[x][y] = '.';
+            map.reset_dirs();
+            grd.pos = starting_pos;
+            grd.dir = 0;
+        }
+    }
 
-    // std::cout << "Answer 1: " << resultA << std::endl;
-    std::cout << "Answer 2: " << resultB << std::endl;
+    // Stop timer
+    auto stop = high_resolution_clock::now();
+    auto duration = duration_cast<microseconds>(stop - start);
+
+    std::cout << "End time: " << duration.count() << '\n'; 
+
+    std::cout << "Answer 2: " << res << std::endl;
 
     return 0;
 }
