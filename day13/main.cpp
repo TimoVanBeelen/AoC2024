@@ -129,12 +129,3 @@ int main(int argc, char *argv[]) {
     std::cout << "Answer 1: " << result << std::endl;
     return 0;
 }
-
-// 41331329 too low
-// 314033368007 too low
-// 314033366346 too low
-// 99543406944928 too high
-// 97921515885735 incorrect
-// 99001608330460 incorrect
-// 82535418533953 incorrect
-// 91525080552802 incorrect

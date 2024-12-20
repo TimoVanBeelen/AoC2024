@@ -10,19 +10,30 @@
 
 
 // Structures 
-struct field {
-    int x;
-    int y;
-    int last_dir;
-    char c = '.';
-};
 struct guard {
-    field pos;
+    std::pair<int, int> pos;
     int dir;
 };
 struct matrix {
     int width;
     int height;
+    int **last_dir;
+    char **val;
+
+    matrix (int h, int w) {
+        this->height = h;
+        this->width = w;
+
+        this->last_dir = new int*[w];
+        this->val = new char*[w];
+        for (int i=0; i<w; i++) {
+            this->last_dir[i] = new int[h];
+            this->val[i] = new char[h];
+            
+            for (int j=0; j<h; j++) 
+                this->last_dir[i][j] = -1;
+        }
+    }
 };
 
 // Read file and return string vector with all lines
@@ -41,36 +52,29 @@ std::vector<std::string> read_file(std::string file_name) {
 
 
 // Create a char matrix from a string array
-// void strarr_to_chararr(std::vector<std::string> string_array, field ***fieldptr, matrix m) {
-//     char **char_array = new char*[m.height];      // Create an output variable
-//     for (int i = 0; i < m.height; i++) {
-//         char_array[i] = new char[m.width];        // Create each row with the correct width
-//         for (int j=0; j<m.width; j++) {            // Set each character of the string to the correct char in the char array
-//             std::cout << "MARCO";
-//             fieldptr[0][0]->c = '.'; //string_array[i].at(j);
-//             std::cout << "POLO";
-//         }
-//     }
-// }
-
-void change_dir(field *fieldptr) {
-    fieldptr->last_dir = 0;
+void strarr_to_chararr(std::vector<std::string> *string_array, matrix *m) {
+    for (int i = 0; i < m->width; i++) {
+        for (int j=0; j<m->height; j++) {            // Set each character of the string to the correct char in the char array
+            m->val[i][j] = string_array->at(i).at(j);
+        }
+    }
 }
 
 
 // // Find the initial position of the guard
-// field find_pos(matrix m) {
-//     field pos;                                  // Create a variable of the returning position
-//     for (int i=0; i<m.height; i++) {
-//         for (int j=0; j<m.width; j++){          // Go through the whole matrix
-//             if (m.fields[i][j].c == '^') {      // Guard is found
-//                 pos.x = i;                      // Set its position
-//                 pos.y = j;             
-//             }
-//         }
-//     }
-//     return pos;
-// }
+std::pair<int, int> find_pos(matrix *m) {
+    std::pair<int, int> pos;                     // Create a variable of the returning position
+    for (int y=0; y<m->height; y++) {
+        for (int x=0; x<m->width; x++){          // Go through the whole matrix
+            if (m->val[x][y] == '^') {           // Guard is found
+                pos.first = x;                   // Set its position
+                pos.second = y;
+                m->val[x][y] = '.';             
+            }
+        }
+    }
+    return pos;
+}
 
 
 // // Crossing border?
@@ -131,7 +135,7 @@ void change_dir(field *fieldptr) {
 
 // Get a spot for an obstacle, only consider places where we have an X placed (otherwise we do not even move there)
 int *obs_pos(char **matrix, int height, int width, int *old_pos, char mark) {
-    int *pos;       // The next position to test for an obstacle
+    int *pos = new int[2];       // The next position to test for an obstacle
 
     // Loop through the matrix
     for (int i=old_pos[0]; i<height; i++) {
@@ -149,19 +153,33 @@ int *obs_pos(char **matrix, int height, int width, int *old_pos, char mark) {
 }
 
 
+void print_map(matrix *map) {
+    for (int x=0; x<map->width; x++) {
+        for (int y=0; y<map->height; y++) {
+            std::cout << map->val[x][y];
+        }
+        std::cout << '\n';
+    }
+}
+
+
 // Run main code here
-int main(int argc, char *argv[]) {
+int main(int argc, char *argv[]) {// Check if there are enough arguments
+    if (argc < 2) {
+        std::cout << "Not enough input arguments" << '\n';
+        return 0;
+    }
+
     // Read file
     std::vector<std::string> input_lines =  read_file(argv[1]);
 
     // Create a map: a matrix of characters, from the input lines
-    field **map;
-    matrix m;
-    m.height = input_lines.size();
-    m.width = input_lines[0].size();
-    std::cout << "Map: " << m.height << "x" << m.width << "\n";
-    change_dir(&map[0][0]);
-    // strarr_to_chararr(input_lines, &map, m);
+    matrix map = matrix(input_lines.size(), input_lines[0].size());
+    std::cout << "Map: " << map.width << "x" << map.height << "\n";
+    strarr_to_chararr(&input_lines, &map);
+    std::pair<int, int> startingPos = find_pos(&map);
+
+    print_map(&map);
 
     // for (int i=0; i<m.height; i++) {
     //     for (int j=0; i<m.width; j++) {
